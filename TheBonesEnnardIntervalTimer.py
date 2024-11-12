@@ -1,5 +1,6 @@
 import tkinter as tk
 from datetime import timedelta
+from pynput.keyboard import Listener, Key, KeyCode
 
 class DualStopwatchApp:
     def __init__(self, master): #If you're reading this to learn more about code, thats pretty cool bro true mutt right there
@@ -16,12 +17,16 @@ class DualStopwatchApp:
         self.intro_label = tk.Label(master, text="Welcome to TheBones5 Ennard Interval Timer!\nSubscribe to TheBones5 YouTube channel on YouTube.", font=('Helvetica', 24))
         self.intro_label.pack(pady=20)
 
-        # Start/Reset button
+        # Start button
         self.start_button = tk.Button(master, text="Start", command=self.start_timers)
         self.start_button.pack(pady=10)
 
         self.global_timer_value = tk.StringVar()
         self.interval_timer_value = tk.StringVar()
+
+        # Bind the Number keys for start and reset
+        master.bind("<1>", self.start_timers)  # Key '1' to start
+        master.bind("<2>", self.reset_timers)  # Key '2' to reset
 
         # Timer variables
         self.global_timer_label = tk.Label(master, text="Global Timer:", font=('Helvetica', 24))
@@ -62,7 +67,8 @@ class DualStopwatchApp:
         self.interval_timer = timedelta(seconds=10)  # Initial interval: 10 seconds
         self.is_running = False
 
-    def start_timers(self):
+    def start_timers(self, event=None):
+        """Start the timer if it's not running."""
         if not self.is_running:
             self.is_running = True
             self.intro_label.pack_forget()
@@ -82,6 +88,34 @@ class DualStopwatchApp:
                 self.show_move_message()
 
             self.master.after(1000, self.update_timers)  # Update every 1000 milliseconds (1 second)
+
+    def reset_timers(self, event=None):
+        """Reset the timer to the initial state."""
+        self.is_running = False
+        self.global_timer = timedelta()
+        self.interval_timer = timedelta(seconds=10)
+        self.global_timer_value.set("0:00:00")
+        self.interval_timer_value.set("0:00:10")
+        print("Timer reset")
+        
+        # Show the intro label and start button again
+        self.intro_label.pack()
+        self.start_button.pack()
+
+    def on_press(self, key):
+        """Handle key presses for start and reset."""
+        try:
+            if key == KeyCode.from_char('1'):  # Numpad '1' to start the timer
+                self.start_timers()
+            elif key == KeyCode.from_char('2'):  # Numpad '2' to reset the timer
+                self.reset_timers()
+        except AttributeError:
+            pass
+
+    def start_global_listener(self):
+        """Start listening for global keypresses."""
+        with Listener(on_press=self.on_press) as listener:
+            listener.join()
 
     def reset_interval_timer(self):
         if 0 <= self.global_timer.seconds < 90:
@@ -104,6 +138,15 @@ class DualStopwatchApp:
 
 
 if __name__ == "__main__":
+    # Create the Tkinter window
     root = tk.Tk()
     app = DualStopwatchApp(root)
+
+    # Run the global listener in a separate thread
+    import threading
+    listener_thread = threading.Thread(target=app.start_global_listener)
+    listener_thread.daemon = True
+    listener_thread.start()
+
+    # Run the Tkinter main loop
     root.mainloop()

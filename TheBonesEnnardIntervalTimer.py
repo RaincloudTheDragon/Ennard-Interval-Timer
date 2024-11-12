@@ -6,20 +6,30 @@ class DualStopwatchApp:
         self.master = master
         self.master.title("TheBones5 Ennard Interval Timer")
 
+        # Ensure the window is always on top
+        self.master.attributes('-topmost', True)
+
+        # Set the default window size to 200x280 pixels
+        root.geometry("200x280")
+
+        # Intro label
         self.intro_label = tk.Label(master, text="Welcome to TheBones5 Ennard Interval Timer!\nSubscribe to TheBones5 YouTube channel on YouTube.", font=('Helvetica', 24))
         self.intro_label.pack(pady=20)
 
+        # Start/Reset button
         self.start_button = tk.Button(master, text="Start", command=self.start_timers)
         self.start_button.pack(pady=10)
 
         self.global_timer_value = tk.StringVar()
         self.interval_timer_value = tk.StringVar()
 
+        # Timer variables
         self.global_timer_label = tk.Label(master, text="Global Timer:", font=('Helvetica', 24))
         self.global_timer_label.pack(pady=10)
         self.global_timer_display = tk.Label(master, textvariable=self.global_timer_value, font=('Helvetica', 36, 'bold'))
         self.global_timer_display.pack(pady=10)
 
+        # Timer labels
         self.interval_timer_label = tk.Label(master, text="Interval Timer:", font=('Helvetica', 24))
         self.interval_timer_label.pack(pady=10)
         self.interval_timer_display = tk.Label(master, textvariable=self.interval_timer_value, font=('Helvetica', 36, 'bold'))

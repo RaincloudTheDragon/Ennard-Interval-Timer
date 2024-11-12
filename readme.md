@@ -9,3 +9,4 @@ Requires Python and Pynput.
 - Window size has a set default to be space-minimal; maximize to see the text and ASCII dog.
 - Additional comments for code readability
 - Keyboard inputs: 1 to start timer, 2 to reset timer.
+- Displays in-game timer, -H:MM, so you can cover up the in-game timer without a worry!

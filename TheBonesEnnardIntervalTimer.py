@@ -7,19 +7,24 @@ class DualStopwatchApp:
         self.master = master
         self.master.title("TheBones5 Ennard Interval Timer")
 
+        # Dark mode color scheme
+        bg_color = "#000000"  # Black
+        fg_color = "#808080"  # Light gray for text
+        self.master.configure(bg=bg_color)
+
         # Ensure the window is always on top
         self.master.attributes('-topmost', True)
 
-        # Set the default window size to 200x280 pixels
-        root.geometry("200x280")
+        # Set the default window size to 150x200 pixels
+        root.geometry("150x200")
 
         # Intro label
-        self.intro_label = tk.Label(master, text="Welcome to TheBones5 Ennard Interval Timer!\nSubscribe to TheBones5 YouTube channel on YouTube.", font=('Helvetica', 24))
+        self.intro_label = tk.Label(master, text="Welcome to TheBones5 Ennard Interval Timer!\nSubscribe to TheBones5 YouTube channel on YouTube.", font=('Helvetica', 15), bg=bg_color, fg=fg_color)
         self.intro_label.pack(pady=20)
 
         # Start button
         self.start_button = tk.Button(master, text="Start", command=self.start_timers)
-        self.start_button.pack(pady=10)
+        self.start_button.pack(pady=3)
 
         self.global_timer_value = tk.StringVar()
         self.interval_timer_value = tk.StringVar()
@@ -29,19 +34,28 @@ class DualStopwatchApp:
         master.bind("<2>", self.reset_timers)  # Key '2' to reset
 
         # Timer variables
-        self.global_timer_label = tk.Label(master, text="Global Timer:", font=('Helvetica', 24))
-        self.global_timer_label.pack(pady=10)
-        self.global_timer_display = tk.Label(master, textvariable=self.global_timer_value, font=('Helvetica', 36, 'bold'))
-        self.global_timer_display.pack(pady=10)
+        self.global_timer_label = tk.Label(master, text="Global Timer:", font=('Helvetica', 15), bg=bg_color, fg=fg_color)
+        self.global_timer_label.pack(pady=3)
+        self.global_timer_display = tk.Label(master, textvariable=self.global_timer_value, font=('Helvetica', 20, 'bold'), bg=bg_color, fg=fg_color)
+        self.global_timer_display.pack(pady=3)
+
+        # Initialize time variable and display
+        self.clock_time_value = tk.StringVar(value="12:00 AM")
+        self.current_hour = -1  # Start at -1 so the first increment sets it to 0 (12 AM)
+        self.elapsed_seconds = 0  # Track total elapsed seconds to calculate minutes
+
+        # Time Label
+        self.clock_time_label = tk.Label(master, textvariable=self.clock_time_value, font=('Helvetica', 15, 'bold'), bg=bg_color, fg=fg_color)
+        self.clock_time_label.pack(pady=3)
 
         # Timer labels
-        self.interval_timer_label = tk.Label(master, text="Interval Timer:", font=('Helvetica', 24))
-        self.interval_timer_label.pack(pady=10)
-        self.interval_timer_display = tk.Label(master, textvariable=self.interval_timer_value, font=('Helvetica', 36, 'bold'))
-        self.interval_timer_display.pack(pady=10)
+        self.interval_timer_label = tk.Label(master, text="Interval Timer:", font=('Helvetica', 15), bg=bg_color, fg=fg_color)
+        self.interval_timer_label.pack(pady=3)
+        self.interval_timer_display = tk.Label(master, textvariable=self.interval_timer_value, font=('Helvetica', 20, 'bold'), bg=bg_color, fg=fg_color)
+        self.interval_timer_display.pack(pady=3)
 
-        self.message_label = tk.Label(master, text="", font=('Helvetica', 14), fg='red')
-        self.message_label.pack(pady=10)
+        self.message_label = tk.Label(master, text="", font=('Helvetica', 14), bg=bg_color, fg='red')
+        self.message_label.pack(pady=3)
 
         # ASCII art of a smiling dog
         self.dog_art_label = tk.Label(master, text="""
@@ -60,12 +74,15 @@ class DualStopwatchApp:
 ⠀⠈⠛⢶⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⠃⠀⠀⠀⠀⣼⢹
 ⠀⠀⠀⠀⠈⠉⣻⡶⠢⠤⠤⠄⠀⠀⠀⠀⠀⠀⠀⠠⠤⣴⠃⠀⠀⠀⠀⢰⢃⠛
 ⠀⠀⠀⠀⠀⣰⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡞⠁⠀⠀⠀⠀⣠⢿⠋⠀
-        """, font=('Courier', 16))
-        self.dog_art_label.pack(pady=10)
+        """, font=('Courier', 16), bg=bg_color, fg=fg_color)
+        self.dog_art_label.pack(pady=3)
 
         self.global_timer = timedelta()
         self.interval_timer = timedelta(seconds=10)  # Initial interval: 10 seconds
         self.is_running = False
+
+        # Start the clock updater
+        self.update_clock_time()
 
     def start_timers(self, event=None):
         """Start the timer if it's not running."""
@@ -88,6 +105,34 @@ class DualStopwatchApp:
                 self.show_move_message()
 
             self.master.after(1000, self.update_timers)  # Update every 1000 milliseconds (1 second)
+
+    def update_clock_time(self):
+        """Updates the clock time every second and approximates minute progression."""
+        # Increment elapsed seconds
+        self.elapsed_seconds += 1
+
+        # Calculate the hour and minute to display
+        total_minutes = self.elapsed_seconds // 90  # Each 1.5-minute cycle increases the hour by 1
+        self.current_hour = total_minutes % 24
+
+        # Check if the clock should stop updating at 6:00 AM
+        if self.current_hour == 6 and total_minutes % 24 == 6:
+            # Freeze the display at 6:00 AM
+            self.clock_time_value.set("6:00 AM")
+            return  # Stop further updates
+
+        # Calculate approximate minutes within the 1.5-minute cycle
+        seconds_into_cycle = self.elapsed_seconds % 90
+        display_minute = int((seconds_into_cycle / 90) * 60)
+
+        # Format the hour for display
+        display_hour = self.current_hour % 12
+        display_hour = 12 if display_hour == 0 else display_hour  # Ensure '0' displays as '12'
+        meridiem = "AM" if self.current_hour < 12 else "PM"
+        self.clock_time_value.set(f"{display_hour}:{display_minute:02d} {meridiem}")
+
+        # Schedule the next update in 1000 milliseconds (1 second)
+        self.master.after(1000, self.update_clock_time)
 
     def reset_timers(self, event=None):
         """Reset the timer to the initial state."""

@@ -2,7 +2,7 @@
 
 ## Just a fork to make the tool a little more user-friendly.
 
-Requires Python and Pynput.
+Requires Python, Pynput, and tkinter. Install Python with these dependencies, or run `install_dependencies.bat` if you already have Python installed but you're experiencing errors.
 
 - Batch file for ease of use, closes cmd window by default.
 - Window will be always on top for streamers and one-monitor users.

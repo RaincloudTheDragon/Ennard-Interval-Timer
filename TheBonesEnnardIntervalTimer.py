@@ -6,6 +6,9 @@ class DualStopwatchApp:
     def __init__(self, master): #If you're reading this to learn more about code, thats pretty cool bro true mutt right there
         self.master = master
         self.master.title("TheBones5 Ennard Interval Timer")
+        self.master_clock = timedelta()
+        self.time_displayed = tk.StringVar()
+        self.time_displayed.set("12:00 AM")
 
         # Dark mode color scheme
         bg_color = "#000000"  # Black
@@ -81,9 +84,6 @@ class DualStopwatchApp:
         self.interval_timer = timedelta(seconds=10)  # Initial interval: 10 seconds
         self.is_running = False
 
-        # Start the clock updater
-        self.update_clock_time()
-
     def start_timers(self, event=None):
         """Start the timer if it's not running."""
         if not self.is_running:
@@ -91,6 +91,7 @@ class DualStopwatchApp:
             self.intro_label.pack_forget()
             self.start_button.pack_forget()
             self.update_timers()
+            self.update_clock_time()
 
     def update_timers(self):
         if self.is_running:
@@ -108,44 +109,54 @@ class DualStopwatchApp:
 
     def update_clock_time(self):
         """Updates the clock time every second and approximates minute progression."""
-        # Increment elapsed seconds
-        self.elapsed_seconds += 1
+        if self.is_running:
+            # Increment elapsed seconds
+            self.elapsed_seconds += 1
 
-        # Calculate the hour and minute to display
-        total_minutes = self.elapsed_seconds // 90  # Each 1.5-minute cycle increases the hour by 1
-        self.current_hour = total_minutes % 24
+            # Calculate the hour and minute to display
+            total_minutes = self.elapsed_seconds // 90  # Each 1.5-minute cycle increases the hour by 1
+            self.current_hour = total_minutes % 24
 
-        # Check if the clock should stop updating at 6:00 AM
-        if self.current_hour == 6 and total_minutes % 24 == 6:
-            # Freeze the display at 6:00 AM
-            self.clock_time_value.set("6:00 AM")
-            return  # Stop further updates
+            # Check if the clock should stop updating at 6:00 AM
+            if self.current_hour == 6 and total_minutes % 24 == 6:
+                # Freeze the display at 6:00 AM
+                self.clock_time_value.set("6:00 AM")
+                return  # Stop further updates
 
-        # Calculate approximate minutes within the 1.5-minute cycle
-        seconds_into_cycle = self.elapsed_seconds % 90
-        display_minute = int((seconds_into_cycle / 90) * 60)
+            # Calculate approximate minutes within the 1.5-minute cycle
+            seconds_into_cycle = self.elapsed_seconds % 90
+            display_minute = int((seconds_into_cycle / 90) * 60)
 
-        # Format the hour for display
-        display_hour = self.current_hour % 12
-        display_hour = 12 if display_hour == 0 else display_hour  # Ensure '0' displays as '12'
-        meridiem = "AM" if self.current_hour < 12 else "PM"
-        self.clock_time_value.set(f"{display_hour}:{display_minute:02d} {meridiem}")
+            # Format the hour for display
+            display_hour = self.current_hour % 12
+            display_hour = 12 if display_hour == 0 else display_hour  # Ensure '0' displays as '12'
+            meridiem = "AM" if self.current_hour < 12 else "PM"
+            self.clock_time_value.set(f"{display_hour}:{display_minute:02d} {meridiem}")
 
-        # Schedule the next update in 1000 milliseconds (1 second)
-        self.master.after(1000, self.update_clock_time)
+            # Schedule the next update in 1000 milliseconds (1 second)
+            self.master.after(1000, self.update_clock_time)
 
     def reset_timers(self, event=None):
         """Reset the timer to the initial state."""
         self.is_running = False
-        self.global_timer = timedelta()
-        self.interval_timer = timedelta(seconds=10)
+        self.global_timer = timedelta()  # Reset the global timer to 0
+        self.interval_timer = timedelta(seconds=10)  # Reset the interval timer to 10 seconds
+        self.master_clock = timedelta()  # Reset the master clock to 0
+        self.elapsed_seconds = 0  # Reset elapsed time
+        self.current_hour = -1  # Reset the hour so it starts at 0 when incremented
+
+        # Reset the displayed time
+        self.time_displayed.set("12:00 AM")
+        self.clock_time_value.set("12:00 AM")
+
+        # Clear timer values on the screen
         self.global_timer_value.set("0:00:00")
         self.interval_timer_value.set("0:00:10")
-        print("Timer reset")
-        
+
         # Show the intro label and start button again
         self.intro_label.pack()
         self.start_button.pack()
+        print("Timer reset")
 
     def on_press(self, key):
         """Handle key presses for start and reset."""
